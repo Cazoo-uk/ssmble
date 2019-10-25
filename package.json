@@ -1,0 +1,25 @@
+{
+  "name": "ssm",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+      "test": "yarn jest",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "dependencies": {
+    "@types/aws-sdk": "^2.7.0",
+    "@types/jest": "^24.0.19",
+    "@types/node": "^12.11.7",
+    "aws-sdk": "^2.556.0",
+    "jest": "^24.9.0",
+    "reflect-metadata": "^0.1.13",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "prettier": "^1.18.2",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0"
+  }
+}
