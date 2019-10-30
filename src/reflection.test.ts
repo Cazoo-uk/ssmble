@@ -19,7 +19,7 @@ function readRawData(members, parameters) {
   for (const param of parameters) {
     const reader = members[param.Name]
     if (reader === undefined) continue
-    result[param.Name] = param.Value
+    result[param.Name] = reader(param.Value)
   }
   return result
 }
@@ -29,10 +29,19 @@ function store<T extends { new (...args: any[]): {} }>(f: T) {
   Reflect.defineMetadata(READER, params => readRawData(members, params), f)
 }
 
+function readerFor(t: any) {
+  switch (t) {
+    case String:
+      return s => s
+    case Number:
+      return s => parseInt(s)
+  }
+}
+
 function param(target: any, property: string) {
   var t = Reflect.getMetadata('design:type', target, property)
   const members = Reflect.getOwnMetadata(MEMBERS, target.constructor) || {}
-  members[property] = { type: t }
+  members[property] = readerFor(t)
   Reflect.defineMetadata(MEMBERS, members, target.constructor)
 }
 
@@ -41,15 +50,18 @@ describe('when building a result object', () => {
   class Config {
     @param
     email: string
+    @param
+    age: number
   }
 
-  const input = [p('email', 'winning@life.com')]
+  const input = [p('email', 'winning@life.com'), p('age', '22')]
 
   it('should be confusing as', () => {
     const builder = Reflect.getMetadata(READER, Config)
     const result = builder(input)
     expect(result).toEqual({
       email: 'winning@life.com',
+      age: 22,
     })
   })
 })
