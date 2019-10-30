@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "target": "esnext"
+      "target": "esnext",
+      "moduleResolution": "node",
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true
   },
   "include": [
     "src/*.ts"

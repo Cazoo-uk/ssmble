@@ -5,6 +5,15 @@ const key = name => Symbol(`${namespace}:${name}`)
 const READER = key('reader')
 const MEMBERS = key('members')
 
+const p = (name: string, value: string) => ({
+  Name: name,
+  Type: 'String',
+  Value: value,
+  Version: 1,
+  LastModifiedDate: new Date(),
+  ARN: 'big-long-string',
+})
+
 function readRawData(members, parameters) {
   const result = {}
   for (const param of parameters) {
@@ -15,7 +24,7 @@ function readRawData(members, parameters) {
   return result
 }
 
-function store(f: Function) {
+function store<T extends { new (...args: any[]): {} }>(f: T) {
   const members = Reflect.getOwnMetadata(MEMBERS, f) || {}
   Reflect.defineMetadata(READER, params => readRawData(members, params), f)
 }
@@ -27,23 +36,14 @@ function param(target: any, property: string) {
   Reflect.defineMetadata(MEMBERS, members, target.constructor)
 }
 
-@store
-class Config {
-  @param
-  email: string
-}
-
 describe('when building a result object', () => {
-  const input = [
-    {
-      Name: 'email',
-      Type: 'String',
-      Value: 'winning@life.com',
-      Version: 1,
-      LastModifiedDate: new Date(),
-      ARN: 'big-long-string',
-    },
-  ]
+  @store
+  class Config {
+    @param
+    email: string
+  }
+
+  const input = [p('email', 'winning@life.com')]
 
   it('should be confusing as', () => {
     const builder = Reflect.getMetadata(READER, Config)
