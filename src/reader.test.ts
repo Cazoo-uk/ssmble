@@ -10,8 +10,8 @@ function shouldBe<T>(fn: (t1) => t1 is T, t): T {
 }
 
 const p = (name: string, value: string) => ({
-    ARN: 'big-long-string',
-    LastModifiedDate: new Date(),
+  ARN: 'big-long-string',
+  LastModifiedDate: new Date(),
   Name: name,
   Type: 'String',
   Value: value,
@@ -39,7 +39,7 @@ describe('when building a result object', () => {
     const builder = getReader<Config>(Config)
     const result = builder(input)
     expect(result).toEqual({
-        age: 22,
+      age: 22,
       email: 'winning@life.com',
       isExcellent: true,
     })
@@ -136,6 +136,6 @@ describe('When a field has a default value', () => {
   })
 
   it('should return values for the present fields', () => {
-      expect(result.age).toEqual(99)
+    expect(result.age).toEqual(99)
   })
 })
