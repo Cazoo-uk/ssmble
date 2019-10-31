@@ -131,7 +131,7 @@ describe('When a field has a default value', () => {
     result = shouldBe<Config>(Is.result, builder(input))
   })
 
-  it('should return undefined for the missing fields', () => {
+  it('should return the default for the missing fields', () => {
     expect(result.email).toEqual('fizz@buzz.org')
   })
 
