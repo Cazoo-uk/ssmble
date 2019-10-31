@@ -16,11 +16,14 @@ describe('when building a result object', () => {
     email: string
     @param
     age: number
+    @param
+    isExcellent: boolean
   }
 
   const input = [
     p('/service/trevoror/email', 'winning@life.com'),
     p('/service/trevoror/age', '22'),
+    p('/service/trevoror/isExcellent', 'true'),
   ]
 
   it('should return the correct types', () => {
@@ -29,6 +32,7 @@ describe('when building a result object', () => {
     expect(result).toEqual({
       email: 'winning@life.com',
       age: 22,
+      isExcellent: true,
     })
   })
 })

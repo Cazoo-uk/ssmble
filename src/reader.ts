@@ -3,6 +3,7 @@ import 'reflect-metadata'
 const ns = 'confgasm'
 const key = name => Symbol(`${ns}:${name}`)
 const READER = key('reader')
+const PREFIX = key('prefix')
 const MEMBERS = key('members')
 
 interface Type<T> {
@@ -34,8 +35,20 @@ export function store<T extends { new (...args: any[]): {} }>(path?: string) {
     for (const p of Object.getOwnPropertyNames(members)) {
       readers[`${prefix}${p}`] = members[p]
     }
+    Reflect.defineMetadata(PREFIX, prefix, f)
     Reflect.defineMetadata(READER, params => readRawData(readers, params), f)
   }
+}
+
+function parseBoolean(s: string) {
+  if (s === undefined) {
+    return false
+  }
+  const upper = s.toUpperCase()
+  if (upper === 'FALSE' || upper == 'NO' || upper == '0') {
+    return false
+  }
+  return new Boolean(s)
 }
 
 function readerFor(t: any) {
@@ -44,6 +57,8 @@ function readerFor(t: any) {
       return s => s
     case Number:
       return s => parseInt(s)
+    case Boolean:
+      return s => parseBoolean(s)
   }
 }
 
@@ -61,4 +76,8 @@ export function getReader<TConfig>(
   target: Type<any>
 ): (params: AWS.SSM.ParameterList) => TConfig {
   return Reflect.getOwnMetadata(READER, target)
+}
+
+export function getPrefix(target: Type<any>) {
+  return Reflect.getOwnMetadata(PREFIX, target)
 }

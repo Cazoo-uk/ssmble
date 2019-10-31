@@ -2,8 +2,15 @@ import { Ssm } from './ssm'
 import * as AWS from 'aws-sdk'
 import * as http from 'http'
 import { startLocalServer } from './testServer'
+import { getReader, getPrefix, store, param } from './reader'
 
+interface Type<T> {
+  new (...args: any[]): T
+}
+
+@store('/operations/foo')
 class MyConfig {
+  @param
   secretKey: string
 }
 
@@ -27,7 +34,9 @@ describe('The simplest possible config object', () => {
     requestedPath = new Promise((resolve, reject) => {
       resolver = resolve
     })
-    server = await startLocalServer(resolver, [p('secretKey', 'hello-world')])
+    server = await startLocalServer(resolver, [
+      p('/operations/foo/secretKey', 'hello-world'),
+    ])
   })
 
   afterEach(done => {
@@ -35,31 +44,23 @@ describe('The simplest possible config object', () => {
     server.close(done)
   })
 
-  describe('When we try to build the configuration', () => {
-    it('should request the correct path', async () => {
-      const cfg = await getConfig<MyConfig>()
-      expect(await requestedPath).toEqual('/')
-      expect(cfg.secretKey).toEqual('hello-world')
-    })
-  })
-
   describe('When we provide a path prefix', () => {
     it('should prepend the prefix to the requested path', async () => {
-      const cfg = await getConfig<MyConfig>('/operations/foo')
-      expect(await requestedPath).toEqual('/operations/foo')
+      const cfg = await getConfig(MyConfig)
+      expect(await requestedPath).toEqual('/operations/foo/')
       expect(cfg.secretKey).toEqual('hello-world')
     })
   })
 })
 
-async function getConfig<TConfig extends object>(prefix: string = '/') {
+async function getConfig<TConfig extends object>(target: Type<TConfig>) {
   const client = new AWS.SSM({
     endpoint: process.env.SSM_ENDPOINT,
     logger: console,
   })
 
+  const prefix = getPrefix(target)
   const raw = await client.getParametersByPath({ Path: prefix }).promise()
-  return {
-    secretKey: 'hello-world',
-  } as TConfig
+  const reader = getReader<TConfig>(target)
+  return reader(raw.Parameters)
 }
