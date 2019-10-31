@@ -2,7 +2,8 @@
   CLOSED: [2019-10-31 Thu 11:52]
 * DONE Allow explicit optionality
   CLOSED: [2019-10-31 Thu 18:49]
-* TODO Allow defaults in 'param' call
+* DONE Allow defaults in 'param' call
+  CLOSED: [2019-10-31 Thu 19:00]
 * TODO Allow nested stores
 * TODO Allow environment vars to override keys
 * TODO Allow specific paths and vars for keys

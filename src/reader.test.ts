@@ -1,31 +1,32 @@
-import { store, param, getReader } from './reader'
-import { is, Result, MissingFields } from './error'
+import { MissingFields, Result } from './error'
+import { Is } from './is'
+import { getReader, param, store } from './reader'
 
 function shouldBe<T>(fn: (t1) => t1 is T, t): T {
   if (fn(t)) {
     return t
   }
-  throw 'Expected a thing to be a different thing'
+  throw new Error('Expected a thing to be a different thing')
 }
 
 const p = (name: string, value: string) => ({
+    ARN: 'big-long-string',
+    LastModifiedDate: new Date(),
   Name: name,
   Type: 'String',
   Value: value,
   Version: 1,
-  LastModifiedDate: new Date(),
-  ARN: 'big-long-string',
 })
 
 describe('when building a result object', () => {
   @store('/service/trevoror')
   class Config {
     @param()
-    email: string
+    public email: string
     @param()
-    age: number
+    public age: number
     @param()
-    isExcellent: boolean
+    public isExcellent: boolean
   }
 
   const input = [
@@ -38,8 +39,8 @@ describe('when building a result object', () => {
     const builder = getReader<Config>(Config)
     const result = builder(input)
     expect(result).toEqual({
+        age: 22,
       email: 'winning@life.com',
-      age: 22,
       isExcellent: true,
     })
   })
@@ -49,7 +50,7 @@ describe('when the parameters list contains extra elements', () => {
   @store('/foo')
   class Config {
     @param()
-    email: string
+    public email: string
   }
 
   const input = [p('/foo/email', 'winning@life.com'), p('/foo/age', '22')]
@@ -67,16 +68,16 @@ describe('when there are values missing in the response', () => {
   @store('/missing-fields')
   class Config {
     @param()
-    email: string
+    public email: string
     @param()
-    isExcellent: boolean
+    public isExcellent: boolean
   }
 
   const input = [p('/missing-fields/age', '22')]
 
   it('should return an error for the missing config keys', () => {
     const builder = getReader<Config>(Config)
-    const result = shouldBe<MissingFields>(is.missingFields, builder(input))
+    const result = shouldBe<MissingFields>(Is.missingFields, builder(input))
     expect(result.fields).toEqual(['email', 'isExcellent'])
   })
 })
@@ -85,13 +86,13 @@ describe('When a field is explicitly optional', () => {
   @store('/missing-fields')
   class Config {
     @param({ optional: true })
-    email?: string
+    public email?: string
 
     @param({ optional: true })
-    isExcellent?: boolean
+    public isExcellent?: boolean
 
     @param()
-    age: number
+    public age: number
   }
 
   let result: Config
@@ -99,7 +100,7 @@ describe('When a field is explicitly optional', () => {
 
   beforeEach(() => {
     const builder = getReader<Config>(Config)
-    result = shouldBe<Config>(is.result, builder(input))
+    result = shouldBe<Config>(Is.result, builder(input))
   })
 
   it('should return undefined for the missing fields', () => {
@@ -116,10 +117,10 @@ describe('When a field has a default value', () => {
   @store('/default-fields')
   class Config {
     @param({ default: 'fizz@buzz.org' })
-    email: string
+    public email: string
 
     @param({ default: 27 })
-    age: number
+    public age: number
   }
 
   let result: Config
@@ -127,7 +128,7 @@ describe('When a field has a default value', () => {
 
   beforeEach(() => {
     const builder = getReader<Config>(Config)
-    result = shouldBe<Config>(is.result, builder(input))
+    result = shouldBe<Config>(Is.result, builder(input))
   })
 
   it('should return undefined for the missing fields', () => {

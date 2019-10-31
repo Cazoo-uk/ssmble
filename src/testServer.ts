@@ -1,5 +1,5 @@
-import * as http from 'http'
 import { SSM } from 'aws-sdk'
+import * as http from 'http'
 
 export function startLocalServer(
   callback: (path: string) => void,

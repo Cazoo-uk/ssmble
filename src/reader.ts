@@ -8,29 +8,15 @@ const READER = key('reader')
 const PREFIX = key('prefix')
 const MEMBERS = key('members')
 
-interface Type<T> {
-  new (...args: any[]): T
-}
-
-interface Property<T> {
-  parser: (x: string) => T
-  name: string
-}
-
-interface MissingFields {
-  tag: 'MISSING_FIELDS'
-  fields: string[]
-}
-
-type Result<T> = T | MissingFields
+type Type<T> = new (...args: any[]) => T
 
 function readRawData(members, parameters) {
   const result = {}
 
-  for (const param of parameters) {
-    const reader = members[param.Name]
+  for (const p of parameters) {
+    const reader = members[p.Name]
     if (reader === undefined) continue
-    result[reader.name] = reader.parser(param.Value)
+    result[reader.name] = reader.parser(p.Value)
   }
 
   const missing = []
@@ -52,7 +38,7 @@ function readRawData(members, parameters) {
   return result
 }
 
-export function store<T extends { new (...args: any[]): {} }>(path?: string) {
+export function store<T extends new (...args: any[]) => {}>(path?: string) {
   let prefix = path || '/'
   prefix = (prefix.endsWith('/') && prefix) || prefix + '/'
 
@@ -72,10 +58,10 @@ function parseBoolean(s: string) {
     return false
   }
   const upper = s.toUpperCase()
-  if (upper === 'FALSE' || upper == 'NO' || upper == '0') {
+  if (upper === 'FALSE' || upper === 'NO' || upper === '0') {
     return false
   }
-  return new Boolean(s)
+  return Boolean(s)
 }
 
 function readerFor(t: any) {
@@ -83,24 +69,24 @@ function readerFor(t: any) {
     case String:
       return s => s
     case Number:
-      return s => parseInt(s)
+      return s => parseInt(s, 10)
     case Boolean:
       return s => parseBoolean(s)
   }
 }
 
-export interface ParameterOptions<T> {
-  optional?: Boolean
+interface IParameterOptions<T> {
+  optional?: boolean
   default?: T
 }
 
-export function param<T>(options: ParameterOptions<T> = {}) {
+export function param<T>(options: IParameterOptions<T> = {}) {
   return (target: any, property: string) => {
-    var t = Reflect.getMetadata('design:type', target, property)
+    const t = Reflect.getMetadata('design:type', target, property)
     const members = Reflect.getOwnMetadata(MEMBERS, target.constructor) || {}
     members[property] = {
-      parser: readerFor(t),
       name: property,
+      parser: readerFor(t),
       ...options,
     }
     Reflect.defineMetadata(MEMBERS, members, target.constructor)

@@ -1,17 +1,15 @@
-import { Ssm } from './ssm'
 import * as AWS from 'aws-sdk'
 import * as http from 'http'
+import { getPrefix, getReader, param, store } from './reader'
+import { Ssm } from './ssm'
 import { startLocalServer } from './testServer'
-import { getReader, getPrefix, store, param } from './reader'
 
-interface Type<T> {
-  new (...args: any[]): T
-}
+type Type<T> = new (...args: any[]) => T
 
 @store('/operations/foo')
 class MyConfig {
   @param
-  secretKey: string
+  public secretKey: string
 }
 
 const p = (name: string, value: string) => ({
