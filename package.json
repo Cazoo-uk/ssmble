@@ -1,16 +1,16 @@
 {
   "name": "ssm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "scripts": {
     "build": "tsc",
     "test": "yarn jest",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "prepare": "yarn build",
     "prepublishOnly": "yarn test && yarn lint",
     "preversion": "yarn lint",
-    "version": "yarn format && git add -A client",
+    "version": "yarn format && git add -A src",
     "postversion": "git push && git push --tags"
   },
   "files": [
