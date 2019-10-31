@@ -9,14 +9,20 @@ export class MissingFields {
     }
 }
 
-type Error = MissingFields
+export type Error = MissingFields
 
-type Result<T> = T | Error
+export type Result<T> = T | Error
 
-export function isMissingFields<T>(result: Result<T>) : result is MissingFields {
-    if ('__tag' in result) {
-    return result.__tag == MISSING_FIELDS
+export namespace is {
+    export function missingFields<T>(result: Result<T>) : result is MissingFields {
+        if ('__tag' in result) {
+            return result.__tag == MISSING_FIELDS
+        }
+        return false
     }
-    return false
+
+    export function result<T>(result: Result<T>) : result is T {
+        return ! is.missingFields(result)
+    }
 }
 

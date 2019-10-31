@@ -1,5 +1,5 @@
 import { store, param, getReader } from './reader'
-import { isMissingFields, MissingFields } from './error'
+import { is, Result, MissingFields } from './error'
 
 function shouldBe<T>(fn: (t1) => t1 is T, t): T {
   if (fn(t)) {
@@ -20,11 +20,11 @@ const p = (name: string, value: string) => ({
 describe('when building a result object', () => {
   @store('/service/trevoror')
   class Config {
-    @param
+    @param()
     email: string
-    @param
+    @param()
     age: number
-    @param
+    @param()
     isExcellent: boolean
   }
 
@@ -48,7 +48,7 @@ describe('when building a result object', () => {
 describe('when the parameters list contains extra elements', () => {
   @store('/foo')
   class Config {
-    @param
+    @param()
     email: string
   }
 
@@ -66,9 +66,9 @@ describe('when the parameters list contains extra elements', () => {
 describe('when there are values missing in the response', () => {
   @store('/missing-fields')
   class Config {
-    @param
+    @param()
     email: string
-    @param
+    @param()
     isExcellent: boolean
   }
 
@@ -76,7 +76,38 @@ describe('when there are values missing in the response', () => {
 
   it('should return an error for the missing config keys', () => {
     const builder = getReader<Config>(Config)
-    const result = shouldBe<MissingFields>(isMissingFields, builder(input))
+    const result = shouldBe<MissingFields>(is.missingFields, builder(input))
     expect(result.fields).toEqual(['email', 'isExcellent'])
+  })
+})
+
+describe('When a field is explicitly optional', () => {
+  @store('/missing-fields')
+  class Config {
+    @param({ optional: true })
+    email?: string
+
+    @param({ optional: true })
+    isExcellent?: boolean
+
+    @param()
+    age: number
+  }
+
+  let result: Config
+  const input = [p('/missing-fields/age', '22')]
+
+  beforeEach(() => {
+    const builder = getReader<Config>(Config)
+    result = shouldBe<Config>(is.result, builder(input))
+  })
+
+  it('should return undefined for the missing fields', () => {
+    expect(result.email).toBeUndefined()
+    expect(result.isExcellent).toBeUndefined()
+  })
+
+  it('should return values for the present fields', () => {
+    expect(result.age).toEqual(22)
   })
 })

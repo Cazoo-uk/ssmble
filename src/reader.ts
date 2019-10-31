@@ -36,7 +36,10 @@ function readRawData(members, parameters) {
   const missing = []
   for (const k of Object.getOwnPropertyNames(members)) {
     const member = members[k]
-    if (result[member.name] === undefined) missing.push(member.name)
+    if (result[member.name] === undefined) {
+      if (member.optional) continue
+      missing.push(member.name)
+    }
   }
 
   if (missing.length > 0) {
@@ -82,14 +85,21 @@ function readerFor(t: any) {
   }
 }
 
-export function param(target: any, property: string) {
-  var t = Reflect.getMetadata('design:type', target, property)
-  const members = Reflect.getOwnMetadata(MEMBERS, target.constructor) || {}
-  members[property] = {
-    parser: readerFor(t),
-    name: property,
+export interface ParameterOptions<T> {
+  optional?: Boolean
+}
+
+export function param<T>(options: ParameterOptions<T> = {}) {
+  return (target: any, property: string) => {
+    var t = Reflect.getMetadata('design:type', target, property)
+    const members = Reflect.getOwnMetadata(MEMBERS, target.constructor) || {}
+    members[property] = {
+      parser: readerFor(t),
+      name: property,
+      ...options,
+    }
+    Reflect.defineMetadata(MEMBERS, members, target.constructor)
   }
-  Reflect.defineMetadata(MEMBERS, members, target.constructor)
 }
 
 export function getReader<TConfig>(

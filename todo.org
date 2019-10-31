@@ -1,0 +1,8 @@
+* DONE Make fields required by default
+  CLOSED: [2019-10-31 Thu 11:52]
+* TODO Allow explicit optionality
+* TODO Allow defaults in 'param' call
+* TODO Allow nested stores
+* TODO Allow environment vars to override keys
+* TODO Allow specific paths and vars for keys
+* TODO Allow floating points for Number fields
