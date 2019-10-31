@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import * as Error from './error'
+import * as E from './error'
 
 const ns = 'confgasm'
 const key = name => Symbol(`${ns}:${name}`)
@@ -33,7 +33,7 @@ function readRawData(members, parameters) {
   }
 
   if (missing.length > 0) {
-    return new Error.MissingFields(missing)
+    return new E.MissingFields(missing)
   }
   return result
 }
@@ -95,7 +95,7 @@ export function param<T>(options: IParameterOptions<T> = {}) {
 
 export function getReader<TConfig>(
   target: Type<any>
-): (params: AWS.SSM.ParameterList) => Result<TConfig> {
+): (params: AWS.SSM.ParameterList) => E.Result<TConfig> {
   return Reflect.getOwnMetadata(READER, target)
 }
 

@@ -9,6 +9,6 @@ export class Is {
     }
 
     public static result<T>(result: E.Result<T>): result is T {
-        return !is.missingFields(result)
+        return !Is.missingFields(result)
     }
 }
