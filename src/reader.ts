@@ -15,12 +15,33 @@ interface Property<T> {
   name: string
 }
 
+interface MissingFields {
+  tag: 'MISSING_FIELDS'
+  fields: string[]
+}
+
+type Result<T> = T | MissingFields
+
 function readRawData(members, parameters) {
   const result = {}
+
   for (const param of parameters) {
     const reader = members[param.Name]
     if (reader === undefined) continue
     result[reader.name] = reader.parser(param.Value)
+  }
+
+  const missing = []
+  for (const k of Object.getOwnPropertyNames(members)) {
+    const member = members[k]
+    if (result[member.name] === undefined) missing.push(member.name)
+  }
+
+  if (missing.length > 0) {
+    return {
+      tag: 'MISSING_FIELDS',
+      fields: missing,
+    }
   }
   return result
 }
@@ -74,7 +95,7 @@ export function param(target: any, property: string) {
 
 export function getReader<TConfig>(
   target: Type<any>
-): (params: AWS.SSM.ParameterList) => TConfig {
+): (params: AWS.SSM.ParameterList) => Result<TConfig> {
   return Reflect.getOwnMetadata(READER, target)
 }
 

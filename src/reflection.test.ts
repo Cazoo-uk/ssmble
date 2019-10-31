@@ -54,3 +54,23 @@ describe('when the parameters list contains extra elements', () => {
     })
   })
 })
+
+describe('when there are values missing in the response', () => {
+  @store('/missing-fields')
+  class Config {
+    @param
+    email: string
+    @param
+    isExcellent: boolean
+  }
+
+  const input = [p('/missing-fields/age', '22')]
+
+  it('should throw an error for the missing config keys', () => {
+    const builder = getReader<Config>(Config)
+    expect(builder(input)).toEqual({
+      tag: 'MISSING_FIELDS',
+      fields: ['email', 'isExcellent'],
+    })
+  })
+})
