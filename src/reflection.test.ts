@@ -32,3 +32,21 @@ describe('when building a result object', () => {
     })
   })
 })
+
+describe('when the parameters list contains extra elements', () => {
+  @store('/foo')
+  class Config {
+    @param
+    email: string
+  }
+
+  const input = [p('/foo/email', 'winning@life.com'), p('/foo/age', '22')]
+
+  it('should return the correct types', () => {
+    const builder = getReader<Config>(Config)
+    const result = builder(input)
+    expect(result).toEqual({
+      email: 'winning@life.com',
+    })
+  })
+})
