@@ -1,5 +1,7 @@
 import 'reflect-metadata'
 
+import * as Error from './error'
+
 const ns = 'confgasm'
 const key = name => Symbol(`${ns}:${name}`)
 const READER = key('reader')
@@ -38,10 +40,7 @@ function readRawData(members, parameters) {
   }
 
   if (missing.length > 0) {
-    return {
-      tag: 'MISSING_FIELDS',
-      fields: missing,
-    }
+    return new Error.MissingFields(missing)
   }
   return result
 }

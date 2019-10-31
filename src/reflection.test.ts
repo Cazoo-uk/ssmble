@@ -1,4 +1,12 @@
 import { store, param, getReader } from './reader'
+import { isMissingFields, MissingFields } from './error'
+
+function shouldBe<T>(fn: (t1) => t1 is T, t): T {
+  if (fn(t)) {
+    return t
+  }
+  throw 'Expected a thing to be a different thing'
+}
 
 const p = (name: string, value: string) => ({
   Name: name,
@@ -66,11 +74,9 @@ describe('when there are values missing in the response', () => {
 
   const input = [p('/missing-fields/age', '22')]
 
-  it('should throw an error for the missing config keys', () => {
+  it('should return an error for the missing config keys', () => {
     const builder = getReader<Config>(Config)
-    expect(builder(input)).toEqual({
-      tag: 'MISSING_FIELDS',
-      fields: ['email', 'isExcellent'],
-    })
+    const result = shouldBe<MissingFields>(isMissingFields, builder(input))
+    expect(result.fields).toEqual(['email', 'isExcellent'])
   })
 })
