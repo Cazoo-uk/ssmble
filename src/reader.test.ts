@@ -111,3 +111,30 @@ describe('When a field is explicitly optional', () => {
     expect(result.age).toEqual(22)
   })
 })
+
+describe('When a field has a default value', () => {
+  @store('/default-fields')
+  class Config {
+    @param({ default: 'fizz@buzz.org' })
+    email: string
+
+    @param({ default: 27 })
+    age: number
+  }
+
+  let result: Config
+  const input = [p('/default-fields/age', '99')]
+
+  beforeEach(() => {
+    const builder = getReader<Config>(Config)
+    result = shouldBe<Config>(is.result, builder(input))
+  })
+
+  it('should return undefined for the missing fields', () => {
+    expect(result.email).toEqual('fizz@buzz.org')
+  })
+
+  it('should return values for the present fields', () => {
+      expect(result.age).toEqual(99)
+  })
+})

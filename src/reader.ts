@@ -37,6 +37,10 @@ function readRawData(members, parameters) {
   for (const k of Object.getOwnPropertyNames(members)) {
     const member = members[k]
     if (result[member.name] === undefined) {
+      if (member.default !== undefined) {
+        result[member.name] = member.default
+        continue
+      }
       if (member.optional) continue
       missing.push(member.name)
     }
@@ -87,6 +91,7 @@ function readerFor(t: any) {
 
 export interface ParameterOptions<T> {
   optional?: Boolean
+  default?: T
 }
 
 export function param<T>(options: ParameterOptions<T> = {}) {

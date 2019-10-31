@@ -1,6 +1,7 @@
 * DONE Make fields required by default
   CLOSED: [2019-10-31 Thu 11:52]
-* TODO Allow explicit optionality
+* DONE Allow explicit optionality
+  CLOSED: [2019-10-31 Thu 18:49]
 * TODO Allow defaults in 'param' call
 * TODO Allow nested stores
 * TODO Allow environment vars to override keys
