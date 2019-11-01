@@ -7,6 +7,7 @@ const key = name => Symbol(`${ns}:${name}`)
 const READER = key('reader')
 const PREFIX = key('prefix')
 const MEMBERS = key('members')
+const NAMING_CONVENTION = key('naming_convention')
 
 type Type<T> = new (...args: any[]) => T
 
@@ -38,7 +39,15 @@ function readRawData(members, parameters) {
   return result
 }
 
-export function store<T extends new (...args: any[]) => {}>(path?: string) {
+const identity = {
+  fromKey: (s: string) => s,
+  toKey: (s: string) => s,
+}
+
+export function store<T extends new (...args: any[]) => {}>(
+  path?: string,
+  { naming } = { naming: identity }
+) {
   let prefix = path || '/'
   prefix = (prefix.endsWith('/') && prefix) || prefix + '/'
 
@@ -46,7 +55,8 @@ export function store<T extends new (...args: any[]) => {}>(path?: string) {
     const members = Reflect.getOwnMetadata(MEMBERS, f) || {}
     const readers = {}
     for (const p of Object.getOwnPropertyNames(members)) {
-      readers[`${prefix}${p}`] = members[p]
+      const paramName = naming.toKey(p)
+      readers[`${prefix}${paramName}`] = members[p]
     }
     Reflect.defineMetadata(PREFIX, prefix, f)
     Reflect.defineMetadata(READER, params => readRawData(readers, params), f)

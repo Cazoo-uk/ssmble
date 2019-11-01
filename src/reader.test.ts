@@ -133,3 +133,69 @@ describe('When a field has a default value', () => {
     expect(result.age).toEqual(99)
   })
 })
+
+
+const kebab = {
+    fromKey: (key: string) => {
+        return key.replace(/([-_][a-z])/ig, ($1) =>{
+            return $1[1].toUpperCase()
+        })
+    },
+
+    toKey: (name: string) => {
+        return name.replace(/[A-Z]/g, ($1) => {return `-${$1.toLowerCase()}`})
+    }
+}
+
+describe('kebab case naming', () => {
+    describe('for a non-compound word', () => {
+        const word = 'sausages'
+
+        it('should not change the word when converting to a key', () => {
+            expect(kebab.toKey(word)).toEqual(word)
+        })
+
+        it('should not change the word when converting from a key', () => {
+            expect(kebab.fromKey(word)).toEqual(word)
+        })
+    })
+
+    describe('for a compound word', () => {
+        const key = 'sausages-per-guest'
+        const name = 'sausagesPerGuest'
+
+        it('should convert from a property name to a key', () => {
+            expect(kebab.toKey(name)).toEqual(key)
+        })
+
+        it('should convert from a key to a word', () => {
+            expect(kebab.fromKey(key)).toEqual(name)
+        })
+    })
+})
+
+describe('When the store uses kebab-case-identifiers', () => {
+    @store('/kebab-case', {naming: kebab})
+    class Config {
+        @param({ default: 'fizz@buzz.org' })
+        public customerEmail: string
+
+        @param({ default: 27 })
+        public sessionTimeToLive: number
+    }
+
+    let result: Config
+    const input = [p('/kebab-case/customer-email', 'tilting@windmills.net'),
+                   p('/kebab-case/session-time-to-live', '42')
+                  ]
+
+    beforeEach(() => {
+        const builder = getReader<Config>(Config)
+        result = shouldBe<Config>(Is.result, builder(input))
+    })
+
+    it('should return the correct values', () => {
+        expect(result.customerEmail).toEqual('tilting@windmills.net')
+        expect(result.sessionTimeToLive).toEqual(42)
+    })
+})
