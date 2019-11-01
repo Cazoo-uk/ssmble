@@ -4,7 +4,6 @@ import * as Naming from './naming'
 import { getReader, param, store } from './reader'
 import { shouldBe } from './testUtil'
 
-
 const p = (name: string, value: string) => ({
   ARN: 'big-long-string',
   LastModifiedDate: new Date(),
@@ -136,56 +135,56 @@ describe('When a field has a default value', () => {
   })
 })
 
-
 describe('When the store uses kebab-case-identifiers', () => {
-    @store('/kebab-case', {naming: Naming.Kebab})
-    class Config {
-        @param({ default: 'fizz@buzz.org' })
-        public customerEmail: string
+  @store('/kebab-case', { naming: Naming.Kebab })
+  class Config {
+    @param({ default: 'fizz@buzz.org' })
+    public customerEmail: string
 
-        @param({ default: 27 })
-        public sessionTimeToLive: number
-    }
+    @param({ default: 27 })
+    public sessionTimeToLive: number
+  }
 
-    let result: Config
-    const input = [p('/kebab-case/customer-email', 'tilting@windmills.net'),
-                   p('/kebab-case/session-time-to-live', '42')
-                  ]
+  let result: Config
+  const input = [
+    p('/kebab-case/customer-email', 'tilting@windmills.net'),
+    p('/kebab-case/session-time-to-live', '42'),
+  ]
 
-    beforeEach(() => {
-        const builder = getReader<Config>(Config)
-        result = shouldBe<Config>(Is.result, builder(input))
-    })
+  beforeEach(() => {
+    const builder = getReader<Config>(Config)
+    result = shouldBe<Config>(Is.result, builder(input))
+  })
 
-    it('should return the correct values', () => {
-        expect(result.customerEmail).toEqual('tilting@windmills.net')
-        expect(result.sessionTimeToLive).toEqual(42)
-    })
+  it('should return the correct values', () => {
+    expect(result.customerEmail).toEqual('tilting@windmills.net')
+    expect(result.sessionTimeToLive).toEqual(42)
+  })
 })
 
-
 describe('When the store uses snake_case_identifiers', () => {
-    @store('/snake-case', {naming: Naming.Snake})
-    class Config {
-        @param({ default: 'fizz@buzz.org' })
-        public customerEmail: string
+  @store('/snake-case', { naming: Naming.Snake })
+  class Config {
+    @param({ default: 'fizz@buzz.org' })
+    public customerEmail: string
 
-        @param({ default: 27 })
-        public sessionTimeToLive: number
-    }
+    @param({ default: 27 })
+    public sessionTimeToLive: number
+  }
 
-    let result: Config
-    const input = [p('/snake-case/customer_email', 'tilting@windmills.net'),
-                   p('/snake-case/session_time_to_live', '42')
-                  ]
+  let result: Config
+  const input = [
+    p('/snake-case/customer_email', 'tilting@windmills.net'),
+    p('/snake-case/session_time_to_live', '42'),
+  ]
 
-    beforeEach(() => {
-        const builder = getReader<Config>(Config)
-        result = shouldBe<Config>(Is.result, builder(input))
-    })
+  beforeEach(() => {
+    const builder = getReader<Config>(Config)
+    result = shouldBe<Config>(Is.result, builder(input))
+  })
 
-    it('should return the correct values', () => {
-        expect(result.customerEmail).toEqual('tilting@windmills.net')
-        expect(result.sessionTimeToLive).toEqual(42)
-    })
+  it('should return the correct values', () => {
+    expect(result.customerEmail).toEqual('tilting@windmills.net')
+    expect(result.sessionTimeToLive).toEqual(42)
+  })
 })

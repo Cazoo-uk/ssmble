@@ -12,15 +12,18 @@ const NAMING_CONVENTION = key('naming_convention')
 
 type Type<T> = new (...args: any[]) => T
 
-function readRawData(members, parameters) {
+function setPropertiesFromData(members, parameters) {
   const result = {}
-
   for (const p of parameters) {
     const reader = members[p.Name]
     if (reader === undefined) continue
     result[reader.name] = reader.parser(p.Value)
   }
 
+  return result
+}
+
+function handleMissingValues(members, result) {
   const missing = []
   for (const k of Object.getOwnPropertyNames(members)) {
     const member = members[k]
@@ -33,6 +36,14 @@ function readRawData(members, parameters) {
       missing.push(member.name)
     }
   }
+
+  return missing
+}
+
+function readRawData(members, parameters) {
+  const result = setPropertiesFromData(members, parameters)
+
+  const missing = handleMissingValues(members, result)
 
   if (missing.length > 0) {
     return new E.MissingFields(missing)
