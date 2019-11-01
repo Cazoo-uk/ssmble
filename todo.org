@@ -4,6 +4,8 @@
   CLOSED: [2019-10-31 Thu 18:49]
 * DONE Allow defaults in 'param' call
   CLOSED: [2019-10-31 Thu 19:00]
+* DONE Allow kebab-case and snake_case identifiers
+  CLOSED: [2019-11-01 Fri 08:37]
 * TODO Allow nested stores
 * TODO Allow environment vars to override keys
 * TODO Allow specific paths and vars for keys

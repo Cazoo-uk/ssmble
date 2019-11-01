@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 
 import * as E from './error'
+import * as Naming from './naming'
 
 const ns = 'ssmble'
 const key = name => Symbol(`${ns}:${name}`)
@@ -39,14 +40,9 @@ function readRawData(members, parameters) {
   return result
 }
 
-const identity = {
-  fromKey: (s: string) => s,
-  toKey: (s: string) => s,
-}
-
 export function store<T extends new (...args: any[]) => {}>(
   path?: string,
-  { naming } = { naming: identity }
+  { naming } = { naming: Naming.Identity }
 ) {
   let prefix = path || '/'
   prefix = (prefix.endsWith('/') && prefix) || prefix + '/'

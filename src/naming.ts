@@ -33,3 +33,8 @@ export const Snake = {
     })
   },
 }
+
+export const Identity = {
+  fromKey: (s: string) => s,
+  toKey: (s: string) => s,
+}
