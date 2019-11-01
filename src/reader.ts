@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import * as E from './error'
 
-const ns = 'confgasm'
+const ns = 'ssmble'
 const key = name => Symbol(`${ns}:${name}`)
 const READER = key('reader')
 const PREFIX = key('prefix')
