@@ -1,13 +1,7 @@
 import { MissingFields, Result } from './error'
 import { Is } from './is'
 import { getReader, param, store } from './reader'
-
-function shouldBe<T>(fn: (t1) => t1 is T, t): T {
-  if (fn(t)) {
-    return t
-  }
-  throw new Error('Expected a thing to be a different thing')
-}
+import { shouldBe } from './testUtil'
 
 const p = (name: string, value: string) => ({
   ARN: 'big-long-string',

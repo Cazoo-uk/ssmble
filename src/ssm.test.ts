@@ -1,14 +1,16 @@
 import * as AWS from 'aws-sdk'
 import * as http from 'http'
+import { Is } from './is'
 import { getPrefix, getReader, param, store } from './reader'
-import { Ssm } from './ssm'
+import { getConfig } from './ssm'
 import { startLocalServer } from './testServer'
+import { shouldBe } from './testUtil'
 
 type Type<T> = new (...args: any[]) => T
 
 @store('/operations/foo')
 class MyConfig {
-  @param
+  @param()
   public secretKey: string
 }
 
@@ -28,6 +30,8 @@ describe('The simplest possible config object', () => {
   beforeEach(async () => {
     process.env.SSM_ENDPOINT = 'http://localhost:3214/ssm'
     process.env.AWS_REGION = 'eu-west-1'
+    process.env.AWS_ACCESS_KEY_ID = 'foo'
+    process.env.AWS_SECRET_ACCESS_KEY = 'bar'
     let resolver: (path: string) => void
     requestedPath = new Promise((resolve, reject) => {
       resolver = resolve
@@ -44,21 +48,9 @@ describe('The simplest possible config object', () => {
 
   describe('When we provide a path prefix', () => {
     it('should prepend the prefix to the requested path', async () => {
-      const cfg = await getConfig(MyConfig)
+      const cfg = shouldBe<MyConfig>(Is.result, await getConfig(MyConfig))
       expect(await requestedPath).toEqual('/operations/foo/')
       expect(cfg.secretKey).toEqual('hello-world')
     })
   })
 })
-
-async function getConfig<TConfig extends object>(target: Type<TConfig>) {
-  const client = new AWS.SSM({
-    endpoint: process.env.SSM_ENDPOINT,
-    logger: console,
-  })
-
-  const prefix = getPrefix(target)
-  const raw = await client.getParametersByPath({ Path: prefix }).promise()
-  const reader = getReader<TConfig>(target)
-  return reader(raw.Parameters)
-}
