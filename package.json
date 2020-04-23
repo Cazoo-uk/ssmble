@@ -23,7 +23,6 @@
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
-    "@types/aws-sdk": "^2.7.0",
     "@types/jest": "^24.0.19",
     "@types/node": "^12.11.7",
     "jest": "^24.9.0",
