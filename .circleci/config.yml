@@ -31,9 +31,7 @@ jobs:
       - checkout
       - run:
           name: npm clean install
-          command: |
-            npm ci
-            npm run bootstrap
+          command: npm ci
       - *save_repo
 
   check:
@@ -73,8 +71,14 @@ workflows:
     jobs:
       - before_script:
           name: "Init"
+          filters:
+            tags:
+              only: /^v.*/
       - check:
           name: "Linting"
+          filters:
+            tags:
+              only: /^v.*/
           requires:
             - "Init"
       - test:
