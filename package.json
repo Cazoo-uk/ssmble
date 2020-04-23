@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "test": "yarn jest",
+    "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "prepare": "yarn build",
