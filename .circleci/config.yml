@@ -7,7 +7,7 @@ working_directory: &working_directory ~/project
 
 semver_tags: &semver_tags
   tags:
-    only: /(?<=^v?|\sv?)(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?(?=$|\s)/
+    only: /^v\d+/
 
 # Set default configuration
 default_config: &default_config
