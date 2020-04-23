@@ -86,6 +86,59 @@ export async function loadConfig() {
     if (Is.result(response)) {
         return result
     }
+    
+    else {
+        throw new Error(`Failed to load config due to missing fields ${response.fields}`)
+    } 
+}
+```
+
+Applying naming conventions
+===========================
+
+By default, the keys in the parameter store are required to match the keys of your configuration object, but we can apply different naming conventions to the store. Ssmble ships with support for snake_case or kebab-case identifiers.
+
+Assuming the following keys
+
+/my-service
+   /secret-text
+   /is-enabled
+
+We can apply `kebab-case` naming
+
+```
+import {store, param, Naming} from 'ssmble'
+
+@store('/my-service', {naming: Naming.kebab})
+class MyConfiguration {
+
+  @param()
+  secretText: string
+  
+  @param()
+  isEnabled: boolean
+
+}
+```
+
+Assuming the following keys
+
+/my-service
+   /secret_text
+   /is_enabled
+
+We can use `snake_case` naming
+
+```
+@store('/my-service', {naming: Naming.snake})
+class MyConfiguration {
+
+  @param()
+  secretText: string
+  
+  @param()
+  isEnabled: boolean
+
 }
 
 ```
