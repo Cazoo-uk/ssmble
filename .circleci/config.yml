@@ -7,7 +7,7 @@ working_directory: &working_directory ~/project
 
 semver_tags: &semver_tags
   tags:
-    only: /^v\d+/
+    only: /^v.*/
 
 # Set default configuration
 default_config: &default_config
