@@ -39,11 +39,13 @@ SSMble works by mapping SSM parameters to the fields of a class.
 
 Assuming the following parameters stored in SSM:
 
+```
 /my-service
    /secretText
    /endpoint
    /bigness
    /isEnabled
+```
 
 We might choose to build the following configuration object.
 
@@ -100,9 +102,11 @@ By default, the keys in the parameter store are required to match the keys of yo
 
 Assuming the following keys
 
+```
 /my-service
    /secret-text
    /is-enabled
+```
 
 We can apply `kebab-case` naming
 
@@ -123,9 +127,11 @@ class MyConfiguration {
 
 Assuming the following keys
 
+```
 /my-service
    /secret_text
    /is_enabled
+```
 
 We can use `snake_case` naming
 
