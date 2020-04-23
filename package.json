@@ -5,14 +5,14 @@
   "description": "",
   "scripts": {
     "build": "tsc",
-    "test": "yarn jest",
+    "test": "npx run jest",
     "check-format": "prettier --check \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn test && yarn lint",
-    "preversion": "yarn lint",
-    "version": "yarn format && git add -A src",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags"
   },
   "files": [

@@ -5,6 +5,10 @@ references:
 # Set working directory
 working_directory: &working_directory ~/project
 
+semver_tags: &semver_tags
+  tags:
+    only: /(?<=^v?|\sv?)(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*)(?:\.(?:0|[1-9]\d*|[\da-z-]*[a-z-][\da-z-]*))*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?(?=$|\s)/
+
 # Set default configuration
 default_config: &default_config
   docker:
@@ -72,13 +76,11 @@ workflows:
       - before_script:
           name: "Init"
           filters:
-            tags:
-              only: /^v.*/
+            <<: *semver_tags
       - check:
           name: "Linting"
           filters:
-            tags:
-              only: /^v.*/
+            <<: *semver_tags
           requires:
             - "Init"
       - test:
@@ -86,14 +88,12 @@ workflows:
           requires:
             - "Linting"
           filters:
-            tags:
-              only: /^v.*/
+            <<: *semver_tags
       - publish:
           name: "Publish package"
           requires:
             - "Run tests"
           filters:
-            tags:
-              only: /^v.*/
             branches:
               ignore: /.*/          
+            <<: *semver_tags
