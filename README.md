@@ -1,5 +1,4 @@
-SSMble - a handy dandy config reader for AWS Parameter Store
-------------------------------------------------------------
+## SSMble - a handy dandy config reader for AWS Parameter Store
 
 Here at Cazoo we recommend that applications fetch config at runtime from the
 parameter store in SSM. This saves us from putting secrets into environment vars
@@ -11,11 +10,9 @@ simpler.
 Using Typescript decorators, we can automagically bind SSM parameter trees into
 strongly-typed objects at runtime.
 
-Usage
------
+## Usage
 
-Configuring The Typescript Compiler
-===================================
+# Configuring The Typescript Compiler
 
 SSMble requires that the flags `experimentalDecorators` and
 `emitDecoratorMetadata` are enabled in your tsconfig.json. This allows the
@@ -32,8 +29,7 @@ library to inspect the types of your config class and bind them appropriately.
 }
 ```
 
-Authoring a Configuration Class
-===============================
+# Authoring a Configuration Class
 
 SSMble works by mapping SSM parameters to the fields of a class.
 
@@ -61,13 +57,13 @@ class MyConfiguration {
 
   @param()
   secretText: string
-  
+
   @param()
   endpoint: string
-  
+
   @param()
   bigness: number
-  
+
   @param()
   isEnabled: boolean
 
@@ -75,28 +71,26 @@ class MyConfiguration {
 
 ```
 
-Fetching configuration
-=====================
+# Fetching configuration
 
 The `getConfig` function makes the call to SSM and returns either a config object, or an Error result. The `Is` type provides type guards that let us check for success or failure in a type-safe way.
 
 ```
 export async function loadConfig() {
-    
+
     const response = getConfig(MyConfiguration)
-    
+
     if (Is.result(response)) {
         return result
     }
-    
+
     else {
         throw new Error(`Failed to load config due to missing fields ${response.fields}`)
-    } 
+    }
 }
 ```
 
-Applying naming conventions
-===========================
+# Applying naming conventions
 
 By default, the keys in the parameter store are required to match the keys of your configuration object, but we can apply different naming conventions to the store. Ssmble ships with support for snake_case or kebab-case identifiers.
 
@@ -118,7 +112,7 @@ class MyConfiguration {
 
   @param()
   secretText: string
-  
+
   @param()
   isEnabled: boolean
 
@@ -141,10 +135,12 @@ class MyConfiguration {
 
   @param()
   secretText: string
-  
+
   @param()
   isEnabled: boolean
 
 }
 
 ```
+
+### Adding sonarcloud
