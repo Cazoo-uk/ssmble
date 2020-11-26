@@ -9,7 +9,9 @@ export async function getConfig<TConfig extends object>(target: Type<TConfig>) {
   })
 
   const prefix = getPrefix(target)
-  const raw = await client.getParametersByPath({ Path: prefix }).promise()
+  const raw = await client
+    .getParametersByPath({ Path: prefix, WithDecryption: true })
+    .promise()
   const reader = getReader<TConfig>(target)
   return reader(raw.Parameters)
 }
