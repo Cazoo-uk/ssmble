@@ -91,7 +91,7 @@ workflows:
             <<: *semver_tags
       - publish:
           name: "Publish package"
-          context: cazoo-npm
+          context: npm
           requires:
             - "Run tests"
           filters:
