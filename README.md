@@ -148,3 +148,8 @@ class MyConfiguration {
 }
 
 ```
+
+Limitations
+===========
+ * Your code bundler will need to support `experimentalDecorators` and `emitDecoratorMetadata`. Currently [esbuild as of version 0.4.10](https://github.com/evanw/esbuild/blob/master/CHANGELOG.md#0410) supports the former but not the latter so you will need to switch to webpack.
+ * Currently deeply nested parameters can not be fetched in a single `getConfig` call and will need to be fetched separately 
