@@ -1,3 +1,7 @@
+import { MissingFields, Result } from './error'
+import { Is } from './is'
+import { shouldBe } from './testUtil'
+
 const p = (name: string, value: string) => ({
   ARN: 'big-long-string',
   LastModifiedDate: new Date(),
@@ -33,21 +37,37 @@ type Unwrapped<T> = {
     : Unwrapped<T[P]>
 }
 
-function read<T>(spec: T, prefix: string, input: Array<Param>): Unwrapped<T> {
+function read<T>(
+  spec: T,
+  prefix: string,
+  input: Array<Param>
+): Result<Unwrapped<T>> {
   let result = {}
   let data = Object.assign({}, ...input.map(p => ({ [p.Name]: p })))
 
   if (prefix.substr(-1) != '/') prefix += '/'
+  const missing = []
 
-  for (const k of Object.keys(spec)) {
-    const el = spec[k]
-    const entry = data[prefix + k]
-    if (typeof el === 'function') {
-      result[k] = el(entry)
-    } else {
-      result[k] = read(spec[k], prefix + k + '/', input)
+  function _(t, r, p, d, m) {
+    for (const k of Object.keys(t)) {
+      const el = t[k]
+      const entry = d[p + k]
+      const _type = Object.prototype.toString.call(el)
+      if (_type === '[object Object]') {
+          r[k] = _(t[k], {}, p + k + '/', d, m)
+      } else if (undefined === entry) {
+        missing.push(k)
+      } else if (_type === '[object Function]') {
+        r[k] = el(entry)
+      } else {
+        r[k] = entry
+      }
     }
+      return r
   }
+
+  result =  _(spec, {}, prefix, data, missing)
+  if (missing.length > 0) return new MissingFields(missing)
 
   return result as Unwrapped<T>
 }
@@ -122,5 +142,20 @@ describe('when the parameters list contains extra elements', () => {
     expect(result).toEqual({
       email: 'winning@life.com',
     })
+  })
+})
+
+describe('when there are values missing in the response', () => {
+  const spec = {
+    email: cfg.str(),
+    isExcellent: cfg.bool(),
+  }
+
+  const input = [p('/missing-fields/age', '22')]
+
+  it('should return an error for the missing config keys', () => {
+    const built = read(spec, '/missing-fields', input)
+    const result = shouldBe<MissingFields>(Is.missingFields, built)
+    expect(result.fields).toEqual(['email', 'isExcellent'])
   })
 })
