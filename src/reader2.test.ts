@@ -23,7 +23,7 @@ function parseBoolean(s: string) {
 }
 
 type Param = ReturnType<typeof p>
-type Reader<TResult> = (p: Param) => TResult
+type Reader<TResult> = (p: Param, missing:string[]) => TResult | undefined
 
 type Unwrapped<T> = {
   [P in keyof T]: T[P] extends Reader<infer R>
@@ -49,6 +49,10 @@ function read<T>(
   const missing = []
 
   function _read(template, result, prefix, data, missing) {
+    const ctx = {
+        missing,
+        prefix
+    }
     for (const key of Object.keys(template)) {
       const field = template[key]
       const value = data[prefix + key]
@@ -62,10 +66,8 @@ function read<T>(
           data,
           missing
         )
-      } else if (undefined === value) {
-        missing.push(key)
       } else if (_type === '[object Function]') {
-        result[key] = field(value)
+        result[key] = field(key, value, ctx)
       } else {
         result[key] = field
       }
@@ -79,11 +81,40 @@ function read<T>(
   return result as Unwrapped<T>
 }
 
+type ReadContext = {
+    missing: string[],
+    prefix: string,
+}
+
+function _maybeR<T>(parse: (v:string) => T) {
+   return (key: string, x:Param|undefined, ctx: ReadContext) => {
+       if(undefined === x) {
+           return undefined
+       }
+       else {
+           return parse(x.Value)
+       }
+   }
+}
+
+function _r<T>(parse: (v:string) => T) {
+   return (key: string, x:Param|undefined, ctx: ReadContext) => {
+       if(undefined === x) {
+           ctx.missing.push(key)
+       return
+       }
+       else {
+           return parse(x.Value)
+       }
+   }
+}
+
 const cfg = {
-  str: (): Reader<string> => (x: ReturnType<typeof p>) => x.Value,
-  int: (): Reader<number> => (x: ReturnType<typeof p>) => parseInt(x.Value),
-  bool: (): Reader<boolean> => (x: ReturnType<typeof p>) =>
-    parseBoolean(x.Value),
+  str: () => _r(x => x),
+  int: () => _r(x => parseInt(x)),
+  bool: () => _r(parseBoolean),
+  maybeStr: () => _maybeR(x => x),
+    maybeBool: () => _maybeR(parseBoolean)
 }
 
 describe('when building a result object', () => {
@@ -164,5 +195,32 @@ describe('when there are values missing in the response', () => {
     const built = read(spec, '/missing-fields', input)
     const result = shouldBe<MissingFields>(Is.missingFields, built)
     expect(result.fields).toEqual(['email', 'isExcellent'])
+  })
+})
+
+describe('When a field is explicitly optional', () => {
+  const spec = {
+    email: cfg.maybeStr(),
+    isExcellent: cfg.maybeBool(),
+    age: cfg.int(),
+  }
+
+  let result: Unwrapped<typeof spec>
+
+  const input = [p('/missing-fields/age', '22')]
+
+  beforeEach(() => {
+    const built = read(spec, '/missing-fields', input)
+      console.log(built)
+      result = shouldBe<Unwrapped<typeof spec>>(Is.result,built)
+  })
+
+  it('should return undefined for the missing fields', () => {
+    expect(result.email).toBeUndefined()
+    expect(result.isExcellent).toBeUndefined()
+  })
+
+  it('should return values for the present fields', () => {
+    expect(result.age).toEqual(22)
   })
 })
