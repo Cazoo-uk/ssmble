@@ -23,7 +23,7 @@ function parseBoolean(s: string) {
 }
 
 type Param = ReturnType<typeof p>
-type Reader<TResult> = (p: Param, missing:string[]) => TResult | undefined
+type Reader<TResult> = (key:string, p: Param, ctx:ReadContext) => TResult | undefined
 
 type Unwrapped<T> = {
   [P in keyof T]: T[P] extends Reader<infer R>
@@ -35,6 +35,10 @@ type Unwrapped<T> = {
     : T[P] extends boolean
     ? boolean
     : Unwrapped<T[P]>
+}
+
+interface ParamOpts<T> {
+    default?: T
 }
 
 function read<T>(
@@ -86,10 +90,10 @@ type ReadContext = {
     prefix: string,
 }
 
-function _maybeR<T>(parse: (v:string) => T) {
+function _maybeR<T>(parse: (v:string) => T, opts: ParamOpts<T>) {
    return (key: string, x:Param|undefined, ctx: ReadContext) => {
        if(undefined === x) {
-           return undefined
+           return opts.default
        }
        else {
            return parse(x.Value)
@@ -113,8 +117,8 @@ const cfg = {
   str: () => _r(x => x),
   int: () => _r(x => parseInt(x)),
   bool: () => _r(parseBoolean),
-  maybeStr: () => _maybeR(x => x),
-    maybeBool: () => _maybeR(parseBoolean)
+  maybeStr: (opts: ParamOpts<string> = {}) => _maybeR(x => x, opts),
+  maybeBool: (opts: ParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts)
 }
 
 describe('when building a result object', () => {
@@ -211,7 +215,6 @@ describe('When a field is explicitly optional', () => {
 
   beforeEach(() => {
     const built = read(spec, '/missing-fields', input)
-      console.log(built)
       result = shouldBe<Unwrapped<typeof spec>>(Is.result,built)
   })
 
@@ -222,5 +225,28 @@ describe('When a field is explicitly optional', () => {
 
   it('should return values for the present fields', () => {
     expect(result.age).toEqual(22)
+  })
+})
+
+describe('When a field has a default value', () => {
+  const spec = {
+    email: cfg.maybeStr({default:'fizz@buzz.org'}),
+    age: cfg.int(),
+  }
+
+
+  let result : Unwrapped<typeof spec>
+  const input = [p('/default-fields/age', '99')]
+
+  beforeEach(() => {
+    result = shouldBe<Unwrapped<typeof spec>>(Is.result, read(spec, '/default-fields/', input))
+  })
+
+  it('should return the default for the missing fields', () => {
+    expect(result.email).toEqual('fizz@buzz.org')
+  })
+
+  it('should return values for the present fields', () => {
+    expect(result.age).toEqual(99)
   })
 })
