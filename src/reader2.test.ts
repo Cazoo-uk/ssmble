@@ -19,48 +19,51 @@ function parseBoolean(s: string) {
 }
 
 type Param = ReturnType<typeof p>
-type Reader<TResult> = (p:Param) => TResult
+type Reader<TResult> = (p: Param) => TResult
 
-  type Unwrapped<T> = {
-      [P in keyof T] :
-      T[P] extends Reader<infer R> ? R :
-      T[P] extends string ? string :
-      T[P] extends number ? number :
-      T[P] extends boolean ? boolean :
-      Unwrapped<T[P]>
-  }
+type Unwrapped<T> = {
+  [P in keyof T]: T[P] extends Reader<infer R>
+    ? R
+    : T[P] extends string
+    ? string
+    : T[P] extends number
+    ? number
+    : T[P] extends boolean
+    ? boolean
+    : Unwrapped<T[P]>
+}
 
-  function poop<T> (spec: T, prefix: string, input: Array<Param>) : Unwrapped<T> {
-    let result = {}
-    let data = Object.assign({}, ...input.map(p => ({[p.Name]: p})))
+function read<T>(spec: T, prefix: string, input: Array<Param>): Unwrapped<T> {
+  let result = {}
+  let data = Object.assign({}, ...input.map(p => ({ [p.Name]: p })))
 
-    for (const k of Object.keys(spec)) {
-      const el = spec[k]
-        const entry = data[prefix + k]
-      if(typeof el === "function") {
-        result[k] = el(entry)
-      }
-        else {
-      result[k] = poop(spec[k], prefix + k + '/', input)
-        }
+  if (prefix.substr(-1) != '/') prefix += '/'
+
+  for (const k of Object.keys(spec)) {
+    const el = spec[k]
+    const entry = data[prefix + k]
+    if (typeof el === 'function') {
+      result[k] = el(entry)
+    } else {
+      result[k] = read(spec[k], prefix + k + '/', input)
     }
-
-    return result as Unwrapped<T>
   }
 
+  return result as Unwrapped<T>
+}
 
 const cfg = {
-    str: () : Reader<string> => (x: ReturnType<typeof p>) => x.Value,
-    int: () : Reader<number> => (x: ReturnType<typeof p>) => parseInt(x.Value),
-    bool: () : Reader<boolean> => (x: ReturnType<typeof p>) => parseBoolean(x.Value)
+  str: (): Reader<string> => (x: ReturnType<typeof p>) => x.Value,
+  int: (): Reader<number> => (x: ReturnType<typeof p>) => parseInt(x.Value),
+  bool: (): Reader<boolean> => (x: ReturnType<typeof p>) =>
+    parseBoolean(x.Value),
 }
 
 describe('when building a result object', () => {
-
   const config = {
-      email: cfg.str(),
-      age: cfg.int(),
-      isExcellent: cfg.bool()
+    email: cfg.str(),
+    age: cfg.int(),
+    isExcellent: cfg.bool(),
   }
 
   const input = [
@@ -69,27 +72,24 @@ describe('when building a result object', () => {
     p('/service/isExcellent', 'true'),
   ]
 
-
   it('should return the correct types', () => {
-   const result = poop(config, '/service/', input)
-      expect(result).toMatchObject({
-          email: 'winning@life.com',
-          age: 22,
-          isExcellent: true
-      })
+    const result = read(config, '/service/', input)
+    expect(result).toMatchObject({
+      email: 'winning@life.com',
+      age: 22,
+      isExcellent: true,
+    })
   })
 })
 
-
 describe('when building a nested result', () => {
-
   const config = {
-      stripe:  {
-          blockListId: cfg.str()
-      },
-      truelayer: {
-          clientId: cfg.str()
-      }
+    stripe: {
+      blockListId: cfg.str(),
+    },
+    truelayer: {
+      clientId: cfg.str(),
+    },
   }
 
   const input = [
@@ -97,16 +97,30 @@ describe('when building a nested result', () => {
     p('/payments/truelayer/clientId', 'bar'),
   ]
 
+  it('should return the correct types', () => {
+    const result = read(config, '/payments/', input)
+    expect(result).toMatchObject({
+      stripe: {
+        blockListId: 'foo',
+      },
+      truelayer: {
+        clientId: 'bar',
+      },
+    })
+  })
+})
+
+describe('when the parameters list contains extra elements', () => {
+  const spec = {
+    email: cfg.str(),
+  }
+
+  const input = [p('/foo/email', 'winning@life.com'), p('/foo/age', '22')]
 
   it('should return the correct types', () => {
-   const result = poop(config, '/payments/', input)
-      expect(result).toMatchObject({
-          stripe: {
-              blockListId: "foo"
-          },
-          truelayer: {
-              clientId: "bar"
-          }
-      })
+    const result = read(spec, '/foo', input)
+    expect(result).toEqual({
+      email: 'winning@life.com',
+    })
   })
 })
