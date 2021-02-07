@@ -23,7 +23,11 @@ function parseBoolean(s: string) {
 }
 
 type Param = ReturnType<typeof p>
-type Reader<TResult> = (key:string, p: Param, ctx:ReadContext) => TResult | undefined
+type Reader<TResult> = (
+  key: string,
+  p: Param,
+  ctx: ReadContext
+) => TResult | undefined
 
 type Unwrapped<T> = {
   [P in keyof T]: T[P] extends Reader<infer R>
@@ -38,7 +42,7 @@ type Unwrapped<T> = {
 }
 
 interface ParamOpts<T> {
-    default?: T
+  default?: T
 }
 
 function read<T>(
@@ -54,8 +58,8 @@ function read<T>(
 
   function _read(template, result, prefix, data, missing) {
     const ctx = {
-        missing,
-        prefix
+      missing,
+      prefix,
     }
     for (const key of Object.keys(template)) {
       const field = template[key]
@@ -86,31 +90,29 @@ function read<T>(
 }
 
 type ReadContext = {
-    missing: string[],
-    prefix: string,
+  missing: string[]
+  prefix: string
 }
 
-function _maybeR<T>(parse: (v:string) => T, opts: ParamOpts<T>) {
-   return (key: string, x:Param|undefined, ctx: ReadContext) => {
-       if(undefined === x) {
-           return opts.default
-       }
-       else {
-           return parse(x.Value)
-       }
-   }
+function _maybeR<T>(parse: (v: string) => T, opts: ParamOpts<T>) {
+  return (key: string, x: Param | undefined, ctx: ReadContext) => {
+    if (undefined === x) {
+      return opts.default
+    } else {
+      return parse(x.Value)
+    }
+  }
 }
 
-function _r<T>(parse: (v:string) => T) {
-   return (key: string, x:Param|undefined, ctx: ReadContext) => {
-       if(undefined === x) {
-           ctx.missing.push(key)
-       return
-       }
-       else {
-           return parse(x.Value)
-       }
-   }
+function _r<T>(parse: (v: string) => T) {
+  return (key: string, x: Param | undefined, ctx: ReadContext) => {
+    if (undefined === x) {
+      ctx.missing.push(key)
+      return
+    } else {
+      return parse(x.Value)
+    }
+  }
 }
 
 const cfg = {
@@ -118,7 +120,7 @@ const cfg = {
   int: () => _r(x => parseInt(x)),
   bool: () => _r(parseBoolean),
   maybeStr: (opts: ParamOpts<string> = {}) => _maybeR(x => x, opts),
-  maybeBool: (opts: ParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts)
+  maybeBool: (opts: ParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts),
 }
 
 describe('when building a result object', () => {
@@ -215,7 +217,7 @@ describe('When a field is explicitly optional', () => {
 
   beforeEach(() => {
     const built = read(spec, '/missing-fields', input)
-      result = shouldBe<Unwrapped<typeof spec>>(Is.result,built)
+    result = shouldBe<Unwrapped<typeof spec>>(Is.result, built)
   })
 
   it('should return undefined for the missing fields', () => {
@@ -230,16 +232,18 @@ describe('When a field is explicitly optional', () => {
 
 describe('When a field has a default value', () => {
   const spec = {
-    email: cfg.maybeStr({default:'fizz@buzz.org'}),
+    email: cfg.maybeStr({ default: 'fizz@buzz.org' }),
     age: cfg.int(),
   }
 
-
-  let result : Unwrapped<typeof spec>
+  let result: Unwrapped<typeof spec>
   const input = [p('/default-fields/age', '99')]
 
   beforeEach(() => {
-    result = shouldBe<Unwrapped<typeof spec>>(Is.result, read(spec, '/default-fields/', input))
+    result = shouldBe<Unwrapped<typeof spec>>(
+      Is.result,
+      read(spec, '/default-fields/', input)
+    )
   })
 
   it('should return the default for the missing fields', () => {
