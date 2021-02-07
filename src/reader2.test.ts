@@ -48,25 +48,32 @@ function read<T>(
   if (prefix.substr(-1) != '/') prefix += '/'
   const missing = []
 
-  function _(t, r, p, d, m) {
-    for (const k of Object.keys(t)) {
-      const el = t[k]
-      const entry = d[p + k]
-      const _type = Object.prototype.toString.call(el)
+  function _read(template, result, prefix, data, missing) {
+    for (const key of Object.keys(template)) {
+      const field = template[key]
+      const value = data[prefix + key]
+
+      const _type = Object.prototype.toString.call(field)
       if (_type === '[object Object]') {
-          r[k] = _(t[k], {}, p + k + '/', d, m)
-      } else if (undefined === entry) {
-        missing.push(k)
+        result[key] = _read(
+          template[key],
+          {},
+          prefix + key + '/',
+          data,
+          missing
+        )
+      } else if (undefined === value) {
+        missing.push(key)
       } else if (_type === '[object Function]') {
-        r[k] = el(entry)
+        result[key] = field(value)
       } else {
-        r[k] = entry
+        result[key] = field
       }
     }
-      return r
+    return result
   }
 
-  result =  _(spec, {}, prefix, data, missing)
+  result = _read(spec, {}, prefix, data, missing)
   if (missing.length > 0) return new MissingFields(missing)
 
   return result as Unwrapped<T>
