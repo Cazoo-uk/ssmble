@@ -1,6 +1,7 @@
 import { MissingFields, Result } from './error'
 import { Is } from './is'
 import { shouldBe } from './testUtil'
+import {Unwrapped, read, cfg} from './reader2'
 
 const p = (name: string, value: string) => ({
   ARN: 'big-long-string',
@@ -11,117 +12,11 @@ const p = (name: string, value: string) => ({
   Version: 1,
 })
 
-function parseBoolean(s: string) {
-  if (s === undefined) {
-    return false
-  }
-  const upper = s.toUpperCase()
-  if (upper === 'FALSE' || upper === 'NO' || upper === '0') {
-    return false
-  }
-  return Boolean(s)
-}
-
 type Param = ReturnType<typeof p>
-type Reader<TResult> = (
-  key: string,
-  p: Param,
-  ctx: ReadContext
-) => TResult | undefined
 
-type Unwrapped<T> = {
-  [P in keyof T]: T[P] extends Reader<infer R>
-    ? R
-    : T[P] extends string
-    ? string
-    : T[P] extends number
-    ? number
-    : T[P] extends boolean
-    ? boolean
-    : Unwrapped<T[P]>
-}
 
-interface ParamOpts<T> {
-  default?: T
-}
 
-function read<T>(
-  spec: T,
-  prefix: string,
-  input: Array<Param>
-): Result<Unwrapped<T>> {
-  let result = {}
-  let data = Object.assign({}, ...input.map(p => ({ [p.Name]: p })))
 
-  if (prefix.substr(-1) != '/') prefix += '/'
-  const missing = []
-
-  function _read(template, result, prefix, data, missing) {
-    const ctx = {
-      missing,
-      prefix,
-    }
-    for (const key of Object.keys(template)) {
-      const field = template[key]
-      const value = data[prefix + key]
-
-      const _type = Object.prototype.toString.call(field)
-      if (_type === '[object Object]') {
-        result[key] = _read(
-          template[key],
-          {},
-          prefix + key + '/',
-          data,
-          missing
-        )
-      } else if (_type === '[object Function]') {
-        result[key] = field(key, value, ctx)
-      } else {
-        result[key] = field
-      }
-    }
-    return result
-  }
-
-  result = _read(spec, {}, prefix, data, missing)
-  if (missing.length > 0) return new MissingFields(missing)
-
-  return result as Unwrapped<T>
-}
-
-type ReadContext = {
-  missing: string[]
-  prefix: string
-}
-
-function _maybeR<T>(parse: (v: string) => T, opts: ParamOpts<T>) {
-  return (key: string, x: Param | undefined, ctx: ReadContext) => {
-    if (undefined === x) {
-      return opts.default
-    } else {
-      return parse(x.Value)
-    }
-  }
-}
-
-function _r<T>(parse: (v: string) => T) {
-  return (key: string, x: Param | undefined, ctx: ReadContext) => {
-    if (undefined === x) {
-      ctx.missing.push(key)
-      return
-    } else {
-      return parse(x.Value)
-    }
-  }
-}
-
-const cfg = {
-  str: () => _r(x => x),
-  int: () => _r(x => parseInt(x)),
-  bool: () => _r(parseBoolean),
-  maybeStr: (opts: ParamOpts<string> = {}) => _maybeR(x => x, opts),
-  maybeBool: (opts: ParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts),
-}
 
 describe('when building a result object', () => {
   const config = {
