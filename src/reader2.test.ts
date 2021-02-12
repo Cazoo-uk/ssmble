@@ -15,9 +15,6 @@ const p = (name: string, value: string) => ({
 type Param = ReturnType<typeof p>
 
 
-
-
-
 describe('when building a result object', () => {
   const config = {
     email: cfg.str(),
@@ -103,7 +100,7 @@ describe('When a field is explicitly optional', () => {
   const spec = {
     email: cfg.maybeStr(),
     isExcellent: cfg.maybeBool(),
-    age: cfg.int(),
+    age: cfg.maybeInt(),
   }
 
   let result: Unwrapped<typeof spec>
@@ -128,11 +125,11 @@ describe('When a field is explicitly optional', () => {
 describe('When a field has a default value', () => {
   const spec = {
     email: cfg.maybeStr({ default: 'fizz@buzz.org' }),
-    age: cfg.int(),
+    age: cfg.maybeInt({ default: 42 }),
   }
 
   let result: Unwrapped<typeof spec>
-  const input = [p('/default-fields/age', '99')]
+  const input = []
 
   beforeEach(() => {
     result = shouldBe<Unwrapped<typeof spec>>(
@@ -143,9 +140,7 @@ describe('When a field has a default value', () => {
 
   it('should return the default for the missing fields', () => {
     expect(result.email).toEqual('fizz@buzz.org')
+    expect(result.age).toEqual(42)
   })
 
-  it('should return values for the present fields', () => {
-    expect(result.age).toEqual(99)
-  })
 })

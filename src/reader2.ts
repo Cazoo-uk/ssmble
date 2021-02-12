@@ -57,9 +57,10 @@ function _r<T>(parse: (v: string) => T) {
 const cfg = {
   bool: () => _r(parseBoolean),
   int: () => _r(x => parseInt(x, 10)),
-  str: () => _r(x => x),
-  maybeStr: (opts: IParamOpts<string> = {}) => _maybeR(x => x, opts),
   maybeBool: (opts: IParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts),
+  maybeInt: (opts: IParamOpts<number> = {}) => _maybeR(x => parseInt(x, 10), opts),
+  maybeStr: (opts: IParamOpts<string> = {}) => _maybeR(x => x, opts),
+  str: () => _r(x => x),
 }
 
 
