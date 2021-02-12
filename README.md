@@ -26,6 +26,7 @@ Assuming the following parameters stored in SSM:
    /secretText
    /options
      /name
+     /age
    /bigness
    /isEnabled
 ```
@@ -54,7 +55,8 @@ const template = {
   // each `cfg` function has a `maybe` equivalent that takes
   // optional default, and returns `undefined` if the value
   // is missing.
-    name: maybeStr( { default: "bob" } )
+    name: maybeStr(),
+    age: maybeInt( { default: 38 }),
   
   }
 }
