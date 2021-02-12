@@ -1,7 +1,7 @@
 import { MissingFields, Result } from './error'
 import { Is } from './is'
 import { shouldBe } from './testUtil'
-import {Unwrapped, read, cfg} from './reader2'
+import { Unwrapped, read, cfg } from './reader2'
 
 const p = (name: string, value: string) => ({
   ARN: 'big-long-string',
@@ -13,7 +13,6 @@ const p = (name: string, value: string) => ({
 })
 
 type Param = ReturnType<typeof p>
-
 
 describe('when building a result object', () => {
   const config = {
@@ -142,5 +141,4 @@ describe('When a field has a default value', () => {
     expect(result.email).toEqual('fizz@buzz.org')
     expect(result.age).toEqual(42)
   })
-
 })

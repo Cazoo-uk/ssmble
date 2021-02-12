@@ -58,27 +58,27 @@ const cfg = {
   bool: () => _r(parseBoolean),
   int: () => _r(x => parseInt(x, 10)),
   maybeBool: (opts: IParamOpts<boolean> = {}) => _maybeR(parseBoolean, opts),
-  maybeInt: (opts: IParamOpts<number> = {}) => _maybeR(x => parseInt(x, 10), opts),
+  maybeInt: (opts: IParamOpts<number> = {}) =>
+    _maybeR(x => parseInt(x, 10), opts),
   maybeStr: (opts: IParamOpts<string> = {}) => _maybeR(x => x, opts),
   str: () => _r(x => x),
 }
 
-
 export function read<T>(
   spec: T,
-  prefix: string,
+  initialPrefix: string,
   input: AWS.SSM.ParameterList
 ): Result<Unwrapped<T>> {
   const stack = []
   const result = {}
   const data = Object.assign({}, ...input.map(p => ({ [p.Name]: p })))
 
-  if (prefix.substr(-1) !== '/') prefix += '/'
+  if (initialPrefix.substr(-1) !== '/') initialPrefix += '/'
   const missing = []
 
-  stack.push([result, prefix, spec])
+  stack.push([result, initialPrefix, spec])
 
-  while(stack.length > 0) {
+  while (stack.length > 0) {
     const [target, prefix, template] = stack.pop()
 
     for (const key of Object.keys(template)) {
@@ -89,7 +89,6 @@ export function read<T>(
       if (fieldType === '[object Object]') {
         target[key] = {}
         stack.push([target[key], prefix + key + '/', template[key]])
-
       } else if (fieldType === '[object Function]') {
         target[key] = field(key, value, missing)
       } else {
@@ -97,8 +96,8 @@ export function read<T>(
       }
     }
   }
-    if (missing.length > 0) return new MissingFields(missing)
-    return result as Unwrapped<T>
+  if (missing.length > 0) return new MissingFields(missing)
+  return result as Unwrapped<T>
 }
 
-export { cfg  }
+export { cfg }
