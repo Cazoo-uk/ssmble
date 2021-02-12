@@ -60,10 +60,10 @@ describe('The new reader', () => {
   let server: http.Server
   let requestedPath: Promise<string>
 
-  let spec =  {
+  let spec = {
     foo: {
-      secretKey: cfg.str()
-    }
+      secretKey: cfg.str(),
+    },
   }
 
   beforeEach(async () => {
@@ -87,7 +87,10 @@ describe('The new reader', () => {
 
   describe('When we provide a path prefix', () => {
     it('should prepend the prefix to the requested path', async () => {
-      const cfg = shouldBe<Unwrapped<typeof spec>>(Is.result, await getConfig2(spec, '/operations'))
+      const cfg = shouldBe<Unwrapped<typeof spec>>(
+        Is.result,
+        await getConfig2(spec, '/operations')
+      )
       expect(await requestedPath).toEqual('/operations')
       expect(cfg.foo.secretKey).toEqual('hello-world')
     })
