@@ -14,35 +14,19 @@ strongly-typed objects at runtime.
 Usage
 -----
 
-Configuring The Typescript Compiler
+Authoring a Configuration Template
 ===================================
 
-SSMble requires that the flags `experimentalDecorators` and
-`emitDecoratorMetadata` are enabled in your tsconfig.json. This allows the
-library to inspect the types of your config class and bind them appropriately.
-
-```
-//tsconfig.json
-
-{
-  "compilerOptions": {
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-  },
-}
-```
-
-Authoring a Configuration Class
-===============================
-
-SSMble works by mapping SSM parameters to the fields of a class.
+SSMble works by mapping SSM parameters to the fields of an object literal.
 
 Assuming the following parameters stored in SSM:
 
 ```
 /my-service
    /secretText
-   /endpoint
+   /options
+     /name
+     /age
    /bigness
    /isEnabled
 ```
@@ -50,29 +34,32 @@ Assuming the following parameters stored in SSM:
 We might choose to build the following configuration object.
 
 ```
-import {store, param, Is, getConfig} from 'ssmble'
+import {cfg, read} from 'ssmble'
 
-// the `store` decorator binds this class to an SSM hierarchy
 
-@store('/my-service')
-class MyConfiguration {
+// This template object describes the shape of our config
+const template = {
 
-  // the `param` decorator binds a class property to an SSM parameter
-
-  @param()
-  secretText: string
+  // the `str` function describes a required string
+  secretText: cfg.str(),
   
-  @param()
-  endpoint: string
+  // the `int` function describes a required integer
+  bigness: cfg.int(),
   
-  @param()
-  bigness: number
+  // the bool function describes a required boolean
+  isEnabled: cfg.bool(),
   
-  @param()
-  isEnabled: boolean
-
+  // template objects nest
+  options: {
+  
+  // each `cfg` function has a `maybe` equivalent that takes
+  // optional default, and returns `undefined` if the value
+  // is missing.
+    name: maybeStr(),
+    age: maybeInt( { default: 38 }),
+  
+  }
 }
-
 ```
 
 Fetching configuration
@@ -83,7 +70,7 @@ The `getConfig` function makes the call to SSM and returns either a config objec
 ```
 export async function loadConfig() {
     
-    const response = getConfig(MyConfiguration)
+    const response = getConfig(template, '/my-service')
     
     if (Is.result(response)) {
         return result
@@ -93,58 +80,4 @@ export async function loadConfig() {
         throw new Error(`Failed to load config due to missing fields ${response.fields}`)
     } 
 }
-```
-
-Applying naming conventions
-===========================
-
-By default, the keys in the parameter store are required to match the keys of your configuration object, but we can apply different naming conventions to the store. Ssmble ships with support for snake_case or kebab-case identifiers.
-
-Assuming the following keys
-
-```
-/my-service
-   /secret-text
-   /is-enabled
-```
-
-We can apply `kebab-case` naming
-
-```
-import {store, param, Naming} from 'ssmble'
-
-@store('/my-service', {naming: Naming.kebab})
-class MyConfiguration {
-
-  @param()
-  secretText: string
-  
-  @param()
-  isEnabled: boolean
-
-}
-```
-
-Assuming the following keys
-
-```
-/my-service
-   /secret_text
-   /is_enabled
-```
-
-We can use `snake_case` naming
-
-```
-@store('/my-service', {naming: Naming.snake})
-class MyConfiguration {
-
-  @param()
-  secretText: string
-  
-  @param()
-  isEnabled: boolean
-
-}
-
 ```
