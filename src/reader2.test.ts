@@ -1,4 +1,4 @@
-import { MissingFields, Result } from './error'
+import { MissingFields } from './error'
 import { Is } from './is'
 import { shouldBe } from './testUtil'
 import { Unwrapped, read, cfg } from './reader2'
@@ -11,8 +11,6 @@ const p = (name: string, value: string) => ({
   Value: value,
   Version: 1,
 })
-
-type Param = ReturnType<typeof p>
 
 describe('when building a result object', () => {
   const config = {

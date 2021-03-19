@@ -5,11 +5,7 @@ Here at Cazoo we recommend that applications fetch config at runtime from the
 parameter store in SSM. This saves us from putting secrets into environment vars
 and neatly separates config from deployment.
 
-`ssmble` is a simple wrapper for the AWS SDK that makes building configuration
-simpler.
-
-Using Typescript decorators, we can automagically bind SSM parameter trees into
-strongly-typed objects at runtime.
+`ssmble` is a simple wrapper for the AWS SDK that makes building configuration simpler.
 
 Usage
 -----
@@ -33,9 +29,8 @@ Assuming the following parameters stored in SSM:
 
 We might choose to build the following configuration object.
 
-```
-import {cfg, read} from 'ssmble'
-
+```js
+import { cfg } from 'ssmble'
 
 // This template object describes the shape of our config
 const template = {
@@ -51,13 +46,12 @@ const template = {
   
   // template objects nest
   options: {
-  
-  // each `cfg` function has a `maybe` equivalent that takes
-  // optional default, and returns `undefined` if the value
-  // is missing.
+
+    // each `cfg` function has a `maybe` equivalent that takes
+    // optional default, and returns `undefined` if the value
+    // is missing.
     name: maybeStr(),
     age: maybeInt( { default: 38 }),
-  
   }
 }
 ```
@@ -65,19 +59,19 @@ const template = {
 Fetching configuration
 =====================
 
-The `getConfig` function makes the call to SSM and returns either a config object, or an Error result. The `Is` type provides type guards that let us check for success or failure in a type-safe way.
+The `getConfig2` function makes the call to SSM and returns either a config object, or an Error result. The `Is` type provides type guards that let us check for success or failure in a type-safe way.
 
-```
+```js
+import { getConfig2, Is } from 'ssmble'
+
 export async function loadConfig() {
-    
-    const response = getConfig(template, '/my-service')
-    
-    if (Is.result(response)) {
-        return result
-    }
-    
-    else {
-        throw new Error(`Failed to load config due to missing fields ${response.fields}`)
-    } 
+  
+  const response = await getConfig2(template, '/my-service')
+  
+  if (Is.missingFields(response)) {
+    throw new Error(`Failed to load config due to missing fields ${response.fields}`)
+  }
+  
+  return result 
 }
 ```
